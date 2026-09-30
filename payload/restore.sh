@@ -28,6 +28,14 @@ else
     echo "WARNING: DHCP backup not found; DHCP configuration was not changed."
 fi
 
+if [ -f "$base/backups/wireless" ]; then
+    cp "$base/backups/wireless" /etc/config/wireless
+    /etc/init.d/hostapd reload || true
+    echo "Original wireless configuration restored."
+else
+    echo "WARNING: Wireless backup not found; wireless configuration was not restored."
+fi
+
 uci del_list web.ruleset_main.rules="backhaulmodal" 2>/dev/null || true
 uci del_list web.ruleset_main.rules="backhaulstatusajax" 2>/dev/null || true
 uci del_list web.ruleset_main.rules="backhaulscanajax" 2>/dev/null || true
@@ -38,6 +46,8 @@ uci commit web
 /etc/init.d/nginx restart
 
 rm -f \
+    /www/cards/000_A_BackhaulDown.lp \
+    /www/cards/000_B_BackhaulUp.lp \
     /www/cards/029_wifi_backhaul.lp \
     /www/docroot/ajax/backhaul-scan.lua \
     /www/docroot/ajax/backhaul-status.lua \

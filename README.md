@@ -4,13 +4,13 @@ Wi-Fi backhaul for a rooted **Technicolor DJA0231 / VCNT-A** using the router's 
 
 The package creates `wl1_3` as a station interface, connects it to a WPA2-Personal AES/CCMP access point, obtains an upstream IPv4 address, and relays IPv4 traffic between `wl1_3` and `br-lan`.
 
-It also adds a **Wi-Fi Backhaul** card to the Technicolor WebUI with status, scanning, connection controls and Wi-Fi configuration.
+It also adds a **Wi-Fi Backhaul** card to the Technicolor WebUI with status, scanning, connection controls, Wi-Fi configuration, and live download/upload throughput graphs.
 
 > This is an IPv4 pseudo-bridge, not a transparent Ethernet bridge.
 
 ## Tested platform
 
-Release **v1.1.3** has been tested on:
+Release **v1.1.4** has been tested on:
 
 - Technicolor DJA0231
 - Hardware: VCNT-A
@@ -28,9 +28,9 @@ The installer checks the target and deliberately refuses unsupported boards or k
 - The DJA0231 LAN management address and the upstream network must be in the same IPv4 `/24` subnet.
 - The DJA0231 management address must be unique.
 - The installer does not automatically renumber the router.
-- Downstream devices should currently use unique static IPv4 addresses.
-- Avoid addresses that collide with the upstream DHCP pool or other devices.
-- The parent 5 GHz radio is repurposed for backhaul while this is running, so ordinary 5 GHz AP service from that radio should not be expected.
+- Downstream clients can obtain IPv4 addresses from the upstream DHCP server through relayd DHCP forwarding.
+- The stock `wl1_2/ap4` interface is repurposed as a local 5 GHz AP while `wl1_3` operates as the backhaul station.
+- The local 5 GHz AP and backhaul station share the same Broadcom radio, so disabling or reloading the 5 GHz radio can briefly interrupt the backhaul.
 
 ## Installation
 
@@ -41,7 +41,7 @@ https://github.com/inexile50-ops/DJA0231-Backhaul/releases/latest
 Copy the installer to the rooted router:
 
 ```sh
-scp dja0231-backhaul-1.1.3.run root@ROUTER-IP:/tmp/
+scp dja0231-backhaul-1.1.4.run root@ROUTER-IP:/tmp/
 ```
 
 SSH into the DJA0231:
@@ -53,7 +53,7 @@ ssh root@ROUTER-IP
 Run the installer:
 
 ```sh
-sh /tmp/dja0231-backhaul-1.1.3.run
+sh /tmp/dja0231-backhaul-1.1.4.run
 ```
 
 The installer:
@@ -65,7 +65,7 @@ The installer:
 - installs the backhaul runtime
 - installs the Technicolor WebUI additions
 - enables the supervised boot service
-- starts only the status/control monitor while unconfigured
+- starts the status/control monitor and WebUI graph watchdog while unconfigured
 
 Installing the package alone does **not** disable LAN DHCP and does **not** activate the 5 GHz backhaul.
 
@@ -205,8 +205,7 @@ SHA-256 checksums are provided with the release for corruption/integrity checkin
 
 Current release:
 
-**v1.1.3**  
-https://github.com/inexile50-ops/DJA0231-Backhaul/releases/tag/v1.1.3
+**v1.1.4**
 
 ## Source and licences
 

@@ -17,4 +17,10 @@ start_service() {
  procd_set_param respawn 3600 10 0
  procd_set_param term_timeout 5
  procd_close_instance
+
+ procd_open_instance webui-graphs
+ procd_set_param command /root/dja-backhaul/restore-webui-graphs.sh
+ procd_set_param respawn 3600 10 0
+ procd_set_param term_timeout 5
+ procd_close_instance
 }

@@ -1,4 +1,4 @@
-DJA0231 BROADCOM 5 GHz WI-FI BACKHAUL — 1.1.3
+DJA0231 BROADCOM 5 GHz WI-FI BACKHAUL — 1.1.4
 =================================================
 
 OVERVIEW
@@ -12,7 +12,8 @@ backend, obtains an upstream IPv4 address, and relays IPv4 traffic between
 wl1_3 and br-lan.
 
 A Wi-Fi Backhaul card is added to the Technicolor WebUI. It provides status,
-network scanning, connection controls and Wi-Fi configuration.
+network scanning, connection controls, Wi-Fi configuration and live backhaul
+download/upload throughput graphs.
 
 This is an IPv4 pseudo-bridge, NOT a transparent Ethernet bridge.
 
@@ -51,13 +52,18 @@ The installer does NOT automatically renumber the DJA0231.
 
 The DJA0231 management address must be unique.
 
-ALL downstream devices connected through this DJA0231 must currently use UNIQUE STATIC IPv4 addresses. Automatic DHCP addressing for downstream clients is not supported in the default mode. Choose
-addresses that will not collide with the upstream DHCP pool or other devices.
+Downstream clients can obtain IPv4 addresses from the upstream DHCP server.
+The runtime enables relayd DHCP forwarding after the backhaul connection has
+passed its association, upstream DHCP and same-/24 safety checks.
 
-Do not assign the same address to multiple clients.
+The stock wl1_2/ap4 interface is repurposed as a normal local 5 GHz access
+point while wl1_3 operates as the backhaul station. By default it uses the
+primary 5 GHz WPA2 key and an SSID based on the primary 5 GHz SSID with
+"-BH" appended.
 
-The parent 5 GHz radio is repurposed for the backhaul station. Do not expect
-ordinary 5 GHz AP service from that radio while the backhaul is operating.
+The local 5 GHz AP and the backhaul station share the same Broadcom radio.
+Disabling or reloading the 5 GHz radio can therefore interrupt the backhaul
+until wl1_3 reassociates.
 
 
 INSTALLATION
@@ -66,9 +72,9 @@ Copy the .run installer to /tmp on the rooted DJA0231 and execute it as root.
 
 Example:
 
-  scp dja0231-backhaul-1.1.3.run root@ROUTER-IP:/tmp/
+  scp dja0231-backhaul-1.1.4.run root@ROUTER-IP:/tmp/
   ssh root@ROUTER-IP
-  sh /tmp/dja0231-backhaul-1.1.3.run
+  sh /tmp/dja0231-backhaul-1.1.4.run
 
 The installer:
 
@@ -79,7 +85,7 @@ The installer:
 - installs the backhaul runtime
 - installs the Technicolor WebUI additions
 - enables the supervised boot service
-- starts only the status/control monitor while unconfigured
+- starts the status/control monitor and WebUI graph watchdog while unconfigured
 
 Installing the package alone does NOT disable LAN DHCP and does NOT activate
 the 5 GHz backhaul.
@@ -150,21 +156,22 @@ wpa_state=COMPLETED by itself should not be treated as proof of working
 end-to-end traffic.
 
 
-OPTIONAL DHCP RELAY — EXPERIMENTAL
+DOWNSTREAM DHCP FORWARDING
 
-The supported/default downstream mode is static addressing.
+DHCP forwarding is the default downstream mode.
 
-An experimental DHCP relay mode can be selected with:
+The installer writes:
 
-  printf 'relay-experimental\n' > /root/dja-backhaul/client-addressing
-  /etc/init.d/dja-backhaul restart
+  relay-experimental
 
-Return to the default with:
+to /root/dja-backhaul/client-addressing. Despite the historical filename value,
+this mode has been tested on the target firmware and causes relayd to start with
+DHCP forwarding enabled.
+
+Static-only downstream addressing can still be selected manually with:
 
   printf 'static\n' > /root/dja-backhaul/client-addressing
   /etc/init.d/dja-backhaul restart
-
-DHCP relay behaviour has not been validated sufficiently for use as the default mode.
 
 
 RECOVERY / REMOVE

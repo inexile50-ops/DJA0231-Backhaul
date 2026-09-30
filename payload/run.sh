@@ -28,6 +28,8 @@ if ! ip link show wl1_3 >/dev/null 2>&1; then
  wl -i wl1 infra 1
  wl -i wl1 interface_create sta
 fi
+wl -i wl1 ap 1
+ip link set wl1_2 up
 brctl delif br-lan wl1_3 2>/dev/null || true
 ip link set wl1_3 up
 "$base/bin/wpa_supplicant" -Dbrcm_private -i wl1_3 -c "$run/client.conf" > "$run/wpa.log" 2>&1 &

@@ -109,6 +109,15 @@ if fresh then
     data.uptime = (days > 0 and days .. "d " or "") .. string.format("%dh %02dm %02ds", math.floor(seconds / 3600) % 24, math.floor(seconds / 60) % 60, seconds % 60)
   end
 end
+local function read_counter(path)
+  local f = io.open(path, "r")
+  if not f then return 0 end
+  local n = tonumber(f:read("*l")) or 0
+  f:close()
+  return n
+end
+data.rx_bytes = read_counter("/sys/class/net/bcmswlpbk0/statistics/rx_bytes")
+data.tx_bytes = read_counter("/sys/class/net/bcmswlpbk0/statistics/tx_bytes")
 data.status_available = not not fresh
 ngx.header.content_type = "application/json"
 ngx.header["Cache-Control"] = "no-store"
